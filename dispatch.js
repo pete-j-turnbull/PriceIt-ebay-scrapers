@@ -4,8 +4,7 @@ var log = require('./utilities/logger');
 
 var client = new zerorpc.Client();
 client.connect(config.zerorpc.connect);
-log.info(config.zerorpc.connect);
 
-client.invoke('job', {action: 'getFeatures', params: {}}, function(e, response, more) {
-	log.info(response.result);
+client.invoke('job', {action: 'autoSuggest', params: {searchTerm: 'iPhone'}}, function(e, response, more) {
+	log.info(response);
 });

@@ -2,6 +2,7 @@ var async = require('asyncawait/async');
 var await = require('asyncawait/await');
 var config = require('./config/config');
 var log = require('./utilities/logger');
+var request = require('co-request');
 var _ = require('lodash');
 var redis = require('./redis/connection');
 var zerorpc = require('zerorpc');
@@ -33,13 +34,20 @@ var getPrices = async (function (params) {
 	// Return 
 });
 
+var getSuggestions = async (function (params) {
+	var searchTerm = params.searchTerm;
+	var result = await (request('http://autosug.ebaystatic.com/autosug?kwd=' + searchTerm + '&sId=3'));
+	var suggestions = JSON.parse(result.body.match('({.*})')[0]).res.sug;
+	var response = {suggestions: suggestions}
+	return response;
+});
 
 
 var handleMessage = async (function (message) {
 	try {
 		log.info({jobStatus: 'RECEIVED', request: message});
 
-		var response = null;
+		var response;
 
 		if (message.action == 'getFeatures') {
 			var params = message.params;
@@ -49,7 +57,7 @@ var handleMessage = async (function (message) {
 			response = {result: null};
 		} else if (message.action == 'autoSuggest') {
 			var params = message.params;
-			response = {};
+			response = await (getSuggestions(params));
 		}
 
 		// Check that redis doesn't contain a result already
@@ -71,7 +79,6 @@ var handleMessage = async (function (message) {
 var server = new zerorpc.Server({
 	job: async (function(message, reply) {
 		var response = await (handleMessage(message));
-		log.debug(response);
 		reply(null, response);
 	})
 });
