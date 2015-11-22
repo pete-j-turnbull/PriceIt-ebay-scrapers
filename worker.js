@@ -4,6 +4,7 @@ var config = require('./config/config');
 var log = require('./utilities/logger');
 var request = require('co-request');
 var _ = require('lodash');
+var cheerio = require('cheerio');
 var redis = require('./redis/connection');
 var zerorpc = require('zerorpc');
 var scrape = require('./scrape');
@@ -31,7 +32,17 @@ var getFeatures = async (function (params) {
 });
 
 var getPrices = async (function (params) {
-	// Return 
+	var searchTerm = params.searchTerm;
+	//var features = params.features;
+	var result = await (request('http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTerm + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1'));
+
+	var $ = cheerio.load(result.body);
+	var prices = _( $("li[class='lvprice prc']") ).map(item => _.trim($(item).text())).value();
+
+	log.debug(prices);
+
+	var response = {prices: {lower: prices[0], median: prices[1], upper: prices[2]}};
+	return response;
 });
 
 var getSuggestions = async (function (params) {
@@ -54,7 +65,7 @@ var handleMessage = async (function (message) {
 			response = {result: null};
 		} else if (message.action == 'getPrices') {
 			var params = message.params;
-			response = {result: null};
+			response = await (getPrices(params));
 		} else if (message.action == 'autoSuggest') {
 			var params = message.params;
 			response = await (getSuggestions(params));
