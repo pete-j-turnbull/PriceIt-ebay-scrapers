@@ -8,50 +8,9 @@ var cheerio = require('cheerio');
 var redis = require('./redis/connection');
 var zerorpc = require('zerorpc');
 var scrape = require('./scrape');
-
-
-var _getFeatures = async (function (params) {
-	var url = '';
-	var contents = scrape.scrape(url);
-
-});
-var getFeatures = async (function (params) {
-	// Run a request to eBay with the correct searchItem
-	// Pull out features and choose only popular ones
-	// return a list of features with choices available
-
-	// Cache features permanently
-	var cacheKey = 'features.' + params.searchItem;
-	var featuresItem = await (redis.get(cacheKey));
-	if (featuresItem != null) {
-		// Cached result
-		return featuresItem;
-	} else {
-		return await (_getFeatures(params));
-	}
-});
-
-var getPrices = async (function (params) {
-	var searchTerm = params.searchTerm;
-	//var features = params.features;
-	var result = await (request('http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTerm + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1'));
-
-	var $ = cheerio.load(result.body);
-	var prices = _( $("li[class='lvprice prc']") ).map(item => _.trim($(item).text())).value();
-
-	log.debug(prices);
-
-	var response = {prices: {lower: prices[0], median: prices[1], upper: prices[2]}};
-	return response;
-});
-
-var getSuggestions = async (function (params) {
-	var searchTerm = params.searchTerm;
-	var result = await (request('http://autosug.ebaystatic.com/autosug?kwd=' + searchTerm + '&sId=3'));
-	var suggestions = JSON.parse(result.body.match('({.*})')[0]).res.sug;
-	var response = {suggestions: suggestions}
-	return response;
-});
+var getPrices = require('./getPrices').getPrices;
+var getFeatures = require('./getFeatures').getFeatures;
+var getSuggestions = require('./getSuggestions').getSuggestions;
 
 
 var handleMessage = async (function (message) {
@@ -84,6 +43,7 @@ var handleMessage = async (function (message) {
 		return response;
 	}
 });
+
 
 
 

@@ -15,7 +15,6 @@ module.exports.scrape = async (function (url) {
 	};
 
 	var result = await (request(options));
-	log.debug(result);
 	var body = result.body;
 	return body;
 });
