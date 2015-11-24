@@ -13,7 +13,6 @@ module.exports.scrape = async (function (url) {
 			'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
 		}
 	};
-	log.debug(options);
 	var result = await (request(options));
 	var body = result.body;
 	return body;
