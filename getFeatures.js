@@ -17,6 +17,7 @@ var handleSpecialFeatures = function(featureName) {
 };
 var constructFeaturesUrl = function (searchTerm) {
 	var searchTermString = encodeURIComponent(searchTerm).replace('%20', '+');
+	log.debug(searchTermString);
 	return 'http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTermString + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1';
 };
 var constructOptionsUrl = function (searchTerm, featureName) {
@@ -42,9 +43,9 @@ var _getFeatures = async (function (params) {
 
 	var featureNames = _($("span[class='pnl-h']"))
 		.map(item => _.trim($(item).text()))
-		.without('Format', 'Seller', 'Item location', 'Delivery options', 'Show only', 'Price')
+		.without('Format', 'Seller', 'Item location', 'Delivery options', 'Show only', 'Price', 'Language')
 		.value();
-
+	log.debug(featureNames);
 	var optionLists = await (Promise.map(featureNames, fName => _getOptions(searchTerm, fName)));
 
 	var featureScores = [];
@@ -70,6 +71,7 @@ var _getFeatures = async (function (params) {
 		features.push({name: featureNames[i], options: optList, score: featureScores[i]});
 	}
 	features = features.sort((f1, f2) => f2.score - f1.score);
+	log.debug(features);
 
 	featuresObj = {};
 	features.slice(0, 4).forEach(function(feature) {
