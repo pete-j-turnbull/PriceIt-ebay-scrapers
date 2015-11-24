@@ -5,12 +5,14 @@ var log = require('./utilities/logger');
 var _ = require('lodash');
 var scrape = require('./scrape');
 var cheerio = require('cheerio');
+var redis = require('./redis/connection');
 
 var constructUrl = function(searchTerm, features) {
-	return 'http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTerm + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1';
+	var searchTermString = encodeURIComponent(searchTerm).replace('%20', '+');
+	return 'http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTermString + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1';
 };
 
-module.exports.getPrices = async (function(params) {
+var _getPrices = async (function(params) {
 	var searchTerm = params.searchTerm;
 	//var features = params.features;
 	var features = null;
@@ -28,4 +30,16 @@ module.exports.getPrices = async (function(params) {
 
 	var response = {prices: {lower: priceList[lIndex], median: priceList[mIndex], upper: priceList[uIndex]}};
 	return response;
+});
+
+module.exports.getPrices = async (function(params) {
+	var cacheKey = 'prices.' + params.searchTerm;
+	var prices = await (redis.get(cacheKey));
+	if (prices != null) {
+		return JSON.parse(prices);
+	} else {
+		var prices = await (_getPrices(params));
+		await (redis.set(cacheKey, JSON.stringify(prices)));
+		return prices;
+	}
 });

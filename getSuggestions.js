@@ -7,10 +7,11 @@ var scrape = require('./scrape');
 var cheerio = require('cheerio');
 
 var constructUrl = function(searchTerm) {
-	return 'http://autosug.ebaystatic.com/autosug?kwd=' + searchTerm + '&sId=3';
+	var searchTermString = encodeURIComponent(searchTerm).replace('%20', '+');
+	return 'http://autosug.ebaystatic.com/autosug?kwd=' + searchTermString + '&sId=3';
 };
 
-module.exports.getSuggestions = async (function (params) {
+var _getSuggestions = async (function (params) {
 	var searchTerm = params.searchTerm;
 
 	var html = await (scrape.scrape(constructUrl(searchTerm)));
@@ -18,4 +19,18 @@ module.exports.getSuggestions = async (function (params) {
 	var suggestions = JSON.parse(html.match('({.*})')[0]).res.sug;
 	var response = {suggestions: suggestions}
 	return response;
+});
+
+
+module.exports.getSuggestions = async (function(params) {
+	var cacheKey = 'suggestions.' + params.searchTerm;
+
+	var suggestions = await (redis.get(cacheKey));
+	if (suggestions != null) {
+		return JSON.parse(suggestions);
+	} else {
+		var suggestions = await (_getSuggestions(params));
+		await (redis.set(cacheKey, JSON.stringify(suggestions)));
+		return suggestions;
+	}
 });

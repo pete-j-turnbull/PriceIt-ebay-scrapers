@@ -6,6 +6,7 @@ var _ = require('lodash');
 var scrape = require('./scrape');
 var cheerio = require('cheerio');
 var Promise = require('bluebird');
+var redis = require('./redis/connection');
 
 var handleSpecialFeatures = function(featureName) {
 	var specialFeatureNames = ['Condition']; specialLabels = ['LH_ItemCondition'];
@@ -53,7 +54,7 @@ var _getFeatures = async (function (params) {
 	var featureScores = [];
 	optionLists.forEach(function (optList) {
 		// Use this to work out if a feature is of any use...
-		
+
 		var notSpecifiedCount = 0;
 		var totalCount = 0;
 		optList.forEach(function (opt) {
@@ -107,16 +108,16 @@ module.exports.getFeatures = async (function (params) {
 	// return a list of features with choices available
 
 	// Cache features permanently 
-	/*
 	var cacheKey = 'features.' + params.searchTerm;
 	var features = await (redis.get(cacheKey));
 	if (features != null) {
 		// Cached result
-		return features;
+		return JSON.parse(features);
 	} else {
-		return await (_getFeatures(params));
+		var features = await (_getFeatures(params));
+		await (redis.set(cacheKey, JSON.stringify(features)));
+		return features;
 	}
-	*/
 	return await (_getFeatures(params))
 });
 
