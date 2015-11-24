@@ -50,7 +50,7 @@ var handleMessage = async (function (message) {
 var server = new zerorpc.Server({
 	job: async (function(message, reply) {
 		var response = await (handleMessage(message));
-		reply(null, response);
+		reply(null, JSON.stringify(response));
 	})
 });
 server.bind(config.zerorpc.bind);

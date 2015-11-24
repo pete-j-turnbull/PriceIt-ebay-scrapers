@@ -68,8 +68,6 @@ var _getFeatures = async (function (params) {
 	}
 	features = features.sort((f1, f2) => f2.score - f1.score);
 
-	log.debug(JSON.stringify(features));
-
 	featuresObj = {};
 	features.slice(0, 4).forEach(function(feature) {
 		var key = feature.name;
