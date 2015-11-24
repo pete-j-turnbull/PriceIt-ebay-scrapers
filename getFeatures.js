@@ -28,7 +28,7 @@ var constructOptionsUrl = function (searchTerm, featureName) {
 	return 'http://www.ebay.co.uk/sch/i.html?_nkw=' + searchTermString + '&_ssan=' + featureNameString;
 };
 
-var _getOptions = async (function (searchTerm, featureName) {
+var _getRawOptions = async (function (searchTerm, featureName) {
 	var html = await (scrape.scrape(constructOptionsUrl(searchTerm, featureName)));
 	var options = _(JSON.parse(html).values)
 		.map(function (opt) { return {title: opt.title, count: opt.count}; })
@@ -48,49 +48,55 @@ var _getFeatures = async (function (params) {
 		.without('Format', 'Seller', 'Item location', 'Delivery options', 'Show only', 'Price', 'Language')
 		.value();
 	//Option lists
-	var optionLists = await (Promise.map(featureNames, fName => _getOptions(searchTerm, fName)));
+	var rawOptionLists = await (Promise.map(featureNames, fName => _getRawOptions(searchTerm, fName)));
 
-	//Score features
+	//Score features and options
 	var featureScores = [];
-	optionLists.forEach(function (optList) {
-		// Use this to work out if a feature is of any use...
+	rawOptionLists = _(rawOptionLists)
+		.map(function (optList) {
+			// Use this to work out if a feature is of any use...
 
-		var notSpecifiedCount = 0;
-		var totalCount = 0;
-		optList.forEach(function (opt) {
-			if (opt.title === 'Not specified') {
-				notSpecifiedCount = opt.count;
-			}
-			totalCount += opt.count;
+			var notSpecifiedCount = 0;
+			var totalCount = 0;
+			optList.forEach(function (opt) {
+				if (opt.title === 'Not specified') {
+					notSpecifiedCount = opt.count;
+				}
+				totalCount += opt.count;
+			});
+			var nOptList = _(optList)
+				.map(function (opt) {
+					return _(opt)
+						.extend({score: opt.count / totalCount})
+						.value();
+				})
+				.value();
+
+			var featureScore = notSpecifiedCount == 0 ? 1 : (totalCount - notSpecifiedCount) / totalCount;
+			featureScores.push(featureScore);
+			return nOptList;
 		});
-		var score = notSpecifiedCount == 0 ? 1 : (totalCount - notSpecifiedCount) / totalCount;
-		featureScores.push(score);
-	});
+
 
 	//Remove 'Not specified' from optionLists
-	optionLists = _(optionLists)
-		.map(function(optList) {
-			nOptList = [];
-			optList.forEach(function(opt) {
-				if (opt.title != 'Not specified') {
-					nOptList.push(opt);
-				}
-			});
-			return nOptList.slice(0, 4);
-		})
+	var optionLists = _(rawOptionLists)
+		.map(optList => _(optList)
+				.filter(opt => opt.title != 'Not specified')
+				.value())
 		.value();
-
 
 	// Create features object
 	var features = [];
 	for (i = 0; i < featureNames.length; i++) {
 		var optList = _(optionLists[i])
+			.filter(opt => opt.score > 0.02)//
 			.map(opt => opt.title)
 			.value();
 		features.push({name: featureNames[i], options: optList, score: featureScores[i]});
 	}
-	features = features.sort((f1, f2) => f2.score - f1.score);
-	log.debug(features);
+	features = _(features.sort((f1, f2) => f2.score - f1.score))
+		.filter(feature => feature.score > 0.5 & feature.options.length > 1)
+		.value();
 
 	featuresObj = {};
 	features.slice(0, 8).forEach(function(feature) {
@@ -98,6 +104,7 @@ var _getFeatures = async (function (params) {
 		var opts = feature.options;
 		featuresObj[key] = {options: opts};
 	});
+	log.debug(featuresObj);
 	return {features: featuresObj};
 });
 
