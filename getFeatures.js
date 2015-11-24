@@ -64,7 +64,10 @@ var _getFeatures = async (function (params) {
 
 	var features = [];
 	for (i = 0; i < featureNames.length; i++) {
-		features.push({name: featureNames[i], options: optionLists[i], score: featureScores[i]});
+		var optList = _(optionLists[i])
+			.map(opt => opt.title)
+			.value();
+		features.push({name: featureNames[i], options: optList, score: featureScores[i]});
 	}
 	features = features.sort((f1, f2) => f2.score - f1.score);
 
