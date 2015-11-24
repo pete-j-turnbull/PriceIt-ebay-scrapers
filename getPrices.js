@@ -8,7 +8,7 @@ var cheerio = require('cheerio');
 
 var constructUrl = function(searchTerm, features) {
 	return 'http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTerm + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1';
-}
+};
 
 module.exports.getPrices = async (function(params) {
 	var searchTerm = params.searchTerm;

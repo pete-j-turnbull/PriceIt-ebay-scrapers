@@ -21,7 +21,7 @@ var handleMessage = async (function (message) {
 
 		if (message.action == 'getFeatures') {
 			var params = message.params;
-			response = {result: null};
+			response = await (getFeatures(params));
 		} else if (message.action == 'getPrices') {
 			var params = message.params;
 			response = await (getPrices(params));

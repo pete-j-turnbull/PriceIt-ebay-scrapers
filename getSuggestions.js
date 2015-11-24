@@ -7,8 +7,8 @@ var scrape = require('./scrape');
 var cheerio = require('cheerio');
 
 var constructUrl = function(searchTerm) {
-	return 'http://autosug.ebaystatic.com/autosug?kwd=' + searchTerm + '&sId=3'
-}
+	return 'http://autosug.ebaystatic.com/autosug?kwd=' + searchTerm + '&sId=3';
+};
 
 module.exports.getSuggestions = async (function (params) {
 	var searchTerm = params.searchTerm;
