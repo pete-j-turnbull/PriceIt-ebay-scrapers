@@ -7,6 +7,7 @@ var scrape = require('./scrape');
 var cheerio = require('cheerio');
 var Promise = require('bluebird');
 var redis = require('./redis/connection');
+var sha1 = require('sha1');
 
 var handleSpecialFeatures = function(featureName) {
 	var specialFeatureNames = ['Condition']; specialLabels = ['LH_ItemCondition'];
@@ -95,7 +96,7 @@ var _getFeatures = async (function (params) {
 		features.push({name: featureNames[i], options: optList, score: featureScores[i]});
 	}
 	features = _(features.sort((f1, f2) => f2.score - f1.score))
-		.filter(feature => feature.score > 0.5 & feature.options.length > 1)
+		.filter(feature => feature.score > 0.3 & feature.options.length > 1)
 		.value();
 
 	featuresObj = {};
@@ -114,8 +115,8 @@ module.exports.getFeatures = async (function (params) {
 	// Pull out features and choose only popular ones
 	// return a list of features with choices available
 
-	// Cache features permanently 
-	var cacheKey = 'features.' + params.searchTerm;
+	var cacheKey = sha1('features.' + _.trim(params.searchTerm.toLowerCase()));
+
 	var features = await (redis.get(cacheKey));
 	if (features != null) {
 		// Cached result

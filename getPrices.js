@@ -6,6 +6,7 @@ var _ = require('lodash');
 var scrape = require('./scrape');
 var cheerio = require('cheerio');
 var redis = require('./redis/connection');
+var sha1 = require('sha1');
 
 var handleSpecialFeatures = function(featureName) {
 	var specialFeatureNames = ['Condition']; specialLabels = ['LH_ItemCondition'];
@@ -44,22 +45,22 @@ var _getPrices = async (function(params) {
 		.sort((a, b) => a - b)
 		.value();
 
-	var lIndex = Math.floor(priceList.length * 0.2) - 1;
+	var lIndex = Math.floor(priceList.length * 0.3) - 1;
 	var mIndex = Math.floor(priceList.length * 0.5) - 1;
-	var uIndex = Math.floor(priceList.length * 0.8) - 1;
+	var uIndex = Math.floor(priceList.length * 0.7) - 1;
 
 	var response = {prices: {lower: priceList[lIndex], median: priceList[mIndex], upper: priceList[uIndex]}};
 	return response;
 });
 
 module.exports.getPrices = async (function(params) {
-	var cacheKey = 'prices.' + params.searchTerm + JSON.stringify(params.features);
+	var cacheKey = sha1('prices.' + _.trim(params.searchTerm.toLowerCase()) + JSON.stringify(params.features));
 	var prices = await (redis.get(cacheKey));
 	if (prices != null) {
 		return JSON.parse(prices);
 	} else {
 		var prices = await (_getPrices(params));
-		await (redis.set(cacheKey, JSON.stringify(prices)));
+		await (redis.setex(cacheKey, 3600, JSON.stringify(prices)));
 		return prices;
 	}
 });

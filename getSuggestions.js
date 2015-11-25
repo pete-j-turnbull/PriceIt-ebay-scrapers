@@ -5,6 +5,7 @@ var log = require('./utilities/logger');
 var _ = require('lodash');
 var scrape = require('./scrape');
 var cheerio = require('cheerio');
+var sha1 = require('sha1');
 
 var constructUrl = function(searchTerm) {
 	var searchTermString = encodeURIComponent(searchTerm).replace('%20', '+');
@@ -23,7 +24,7 @@ var _getSuggestions = async (function (params) {
 
 
 module.exports.getSuggestions = async (function(params) {
-	var cacheKey = 'suggestions.' + params.searchTerm;
+	var cacheKey = sha1('suggestions.' + _.trim(params.searchTerm.toLowerCase()));
 
 	var suggestions = await (redis.get(cacheKey));
 	if (suggestions != null) {
