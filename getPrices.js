@@ -28,10 +28,15 @@ var constructUrl = function(searchTerm, features) {
 		})
 		.value();
 
-	var allFeaturesParamString = _(featureParamStrings)
-		.reduce((total, s) => total + '&' + s);
+	var allFeaturesParamString;
+	if (featureParamStrings.length == 0) {
+		allFeaturesParamString = '';
+	} else {
+		allFeaturesParamString = _(featureParamStrings)
+			.reduce((total, s) => total + '&' + s);
+	}
 
-	return 'http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTermString + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1' + allFeaturesParamString;
+	return 'http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTermString + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1&_ipg=200' + allFeaturesParamString;
 };
 
 var _getPrices = async (function(params) {
@@ -48,6 +53,8 @@ var _getPrices = async (function(params) {
 	var lIndex = Math.floor(priceList.length * 0.3) - 1;
 	var mIndex = Math.floor(priceList.length * 0.5) - 1;
 	var uIndex = Math.floor(priceList.length * 0.7) - 1;
+
+	log.debug(priceList);
 
 	var response = {prices: {lower: priceList[lIndex], median: priceList[mIndex], upper: priceList[uIndex]}};
 	return response;

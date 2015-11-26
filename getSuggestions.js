@@ -18,9 +18,12 @@ var _getSuggestions = async (function (params) {
 
 	var html = await (scrape.scrape(constructUrl(searchTerm)));
 
-	var suggestions = JSON.parse(html.match('({.*})')[0]).res.sug;
-	var response = {suggestions: suggestions}
-	return response;
+	try {
+		var suggestions = JSON.parse(html.match('({.*})')[0]).res.sug;
+		return {suggestions: suggestions}
+	} catch (err) {
+		return {suggestions: []};
+	}
 });
 
 
