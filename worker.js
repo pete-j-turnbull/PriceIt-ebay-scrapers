@@ -17,28 +17,25 @@ var handleMessage = async (function (message) {
 	try {
 		log.info({jobStatus: 'RECEIVED', request: message});
 
-		var response;
+		var result;
 
 		if (message.action == 'getFeatures') {
 			var params = message.params;
-			response = await (getFeatures(params));
+			result = await (getFeatures(params));
 		} else if (message.action == 'getPrices') {
 			var params = message.params;
-			response = await (getPrices(params));
+			result = await (getPrices(params));
 		} else if (message.action == 'autoSuggest') {
 			var params = message.params;
-			response = await (getSuggestions(params));
+			result = await (getSuggestions(params));
 		}
 
-		// Check that redis doesn't contain a result already
-		//var page = await (getPage(message.apiKey, ota, otaName));
-
-		response = _(response).extend({success: true}).value();
+		var response = {result: result, success: true};
 		log.info({jobStatus: 'PROCESSED', response: response});
 		return response;
 
 	} catch (err) {
-		response = {success: false, result: String(err.stack)};
+		var response = {success: false, result: String(err.stack)};
 		log.info({jobStatus: 'FAILED', response: response});
 		return response;
 	}
@@ -53,5 +50,5 @@ var server = new zerorpc.Server({
 		reply(null, JSON.stringify(response));
 	})
 });
-server.bind(config.zerorpc.bind);
+server.connect('tcp://127.0.0.1:4244');
 

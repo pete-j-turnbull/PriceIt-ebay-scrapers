@@ -1,0 +1,3 @@
+in: "tcp://*:4242"
+out: "tcp://*:4244"
+type: queue
