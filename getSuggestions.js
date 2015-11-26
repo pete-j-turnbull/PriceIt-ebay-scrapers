@@ -6,6 +6,7 @@ var _ = require('lodash');
 var scrape = require('./scrape');
 var cheerio = require('cheerio');
 var sha1 = require('sha1');
+var redis = require('./redis/connection');
 
 var constructUrl = function(searchTerm) {
 	var searchTermString = encodeURIComponent(searchTerm).replace('%20', '+');
