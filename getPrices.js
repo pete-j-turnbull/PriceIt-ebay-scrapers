@@ -46,18 +46,22 @@ var _getPrices = async (function(params) {
 	var html = await (scrape.scrape(constructUrl(searchTerm, features)));
 	var $ = cheerio.load(html);
 	var priceList = _( $("li[class='lvprice prc']") )
-		.map( item => parseInt( _.trim($(item).text()).slice(1) ) )
+		.map( item => parseFloat(_.trim($(item).text()).slice(1)).toFixed(2) )
 		.sort((a, b) => a - b)
 		.value();
 
-	var lIndex = Math.floor(priceList.length * 0.3) - 1;
-	var mIndex = Math.floor(priceList.length * 0.5) - 1;
-	var uIndex = Math.floor(priceList.length * 0.7) - 1;
+	if (priceList.length == 0) {
+		return {prices: {lower: 0.00, median: 0.00, upper: 0.00}};
+	} else {
+		var lIndex = Math.floor(priceList.length * 0.3) - 1;
+		var mIndex = Math.floor(priceList.length * 0.5) - 1;
+		var uIndex = Math.floor(priceList.length * 0.7) - 1;
 
-	log.debug(priceList);
+		log.debug(priceList);
 
-	var response = {prices: {lower: priceList[lIndex], median: priceList[mIndex], upper: priceList[uIndex]}};
-	return response;
+		var response = {prices: {lower: priceList[lIndex], median: priceList[mIndex], upper: priceList[uIndex]}};
+		return response;
+	}
 });
 
 module.exports.getPrices = async (function(params) {
@@ -67,7 +71,7 @@ module.exports.getPrices = async (function(params) {
 		return JSON.parse(prices);
 	} else {
 		var prices = await (_getPrices(params));
-		await (redis.setex(cacheKey, 3600, JSON.stringify(prices)));
+		await (redis.setex(cacheKey, 3600*24, JSON.stringify(prices)));
 		return prices;
 	}
 });

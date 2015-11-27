@@ -35,7 +35,7 @@ module.exports.getSuggestions = async (function(params) {
 		return JSON.parse(suggestions);
 	} else {
 		var suggestions = await (_getSuggestions(params));
-		await (redis.set(cacheKey, JSON.stringify(suggestions)));
+		await (redis.setex(cacheKey, 3600*24, JSON.stringify(suggestions)));
 		return suggestions;
 	}
 });

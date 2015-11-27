@@ -90,17 +90,17 @@ var _getFeatures = async (function (params) {
 	var features = [];
 	for (i = 0; i < featureNames.length; i++) {
 		var optList = _(optionLists[i])
-			.filter(opt => opt.score > 0.02)//
+			.filter(opt => opt.score > 0.01)//
 			.map(opt => opt.title)
 			.value();
 		features.push({name: featureNames[i], options: optList, score: featureScores[i]});
 	}
 	features = _(features.sort((f1, f2) => f2.score - f1.score))
-		.filter(feature => feature.score > 0.3 & feature.options.length > 1)
+		.filter(feature => feature.score > 0.15 & feature.options.length > 1)
 		.value();
 
 	featuresObj = {};
-	features.slice(0, 8).forEach(function(feature) {
+	features.slice(0, 10).forEach(function(feature) {
 		var key = feature.name;
 		var opts = feature.options;
 		featuresObj[key] = {options: opts};
@@ -123,7 +123,7 @@ module.exports.getFeatures = async (function (params) {
 		return JSON.parse(features);
 	} else {
 		var features = await (_getFeatures(params));
-		await (redis.set(cacheKey, JSON.stringify(features)));
+		await (redis.setex(cacheKey, 3600*24*7, JSON.stringify(features)));
 		return features;
 	}
 	return await (_getFeatures(params))
