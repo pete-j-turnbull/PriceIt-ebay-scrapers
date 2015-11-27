@@ -17,12 +17,13 @@ var handleSpecialFeatures = function(featureName) {
 	return specialLabels[sIndex];
 };
 var constructUrl = function(searchTerm, features) {
-	var searchTermString = encodeURIComponent(searchTerm).replace('%20', '+');
+	var searchTermString = encodeURIComponent(searchTerm).replace(/%20/g, '+');
 
 	var featureParamStrings = _(Object.keys(features))
 		.map(function(featureName) {
-			var featureNameString = encodeURIComponent(handleSpecialFeatures(featureName)).replace('%20', '%2520');
-			var optionChoiceString = encodeURIComponent(features[featureName]).replace('%20', '%2520');
+			var featureNameString = encodeURIComponent(handleSpecialFeatures(featureName)).replace(/%20/g, '%2520');
+			var optionChoiceString = encodeURIComponent(features[featureName]).replace(/%20/g, '%2520');
+			log.debug(optionChoiceString);
 
 			return featureNameString + '=' + optionChoiceString;
 		})
@@ -36,7 +37,7 @@ var constructUrl = function(searchTerm, features) {
 			.reduce((total, s) => total + '&' + s);
 	}
 
-	return 'http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTermString + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1&_ipg=200' + allFeaturesParamString;
+	return 'http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTermString + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1&_ipg=200&' + allFeaturesParamString;
 };
 
 var _getPrices = async (function(params) {

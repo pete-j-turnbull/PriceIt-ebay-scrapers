@@ -18,13 +18,13 @@ var handleSpecialFeatures = function(featureName) {
 	return specialLabels[sIndex];
 };
 var constructFeaturesUrl = function (searchTerm) {
-	var searchTermString = encodeURIComponent(searchTerm).replace('%20', '+');
+	var searchTermString = encodeURIComponent(searchTerm).replace(/%20/g, '+');
 	return 'http://www.ebay.co.uk/sch/i.html?LH_Auction=1&_nkw=' + searchTermString + '&LH_PrefLoc=1&LH_Complete=1&LH_Sold=1';
 };
 var constructOptionsUrl = function (searchTerm, featureName) {
 	featureName = handleSpecialFeatures(featureName);
-	var searchTermString = encodeURIComponent(searchTerm).replace('%20', '+');
-	var featureNameString = encodeURIComponent(featureName).replace('%20', '%2520');
+	var searchTermString = encodeURIComponent(searchTerm).replace(/%20/g, '+');
+	var featureNameString = encodeURIComponent(featureName).replace(/%20/g, '%2520');
 
 	return 'http://www.ebay.co.uk/sch/i.html?_nkw=' + searchTermString + '&_ssan=' + featureNameString;
 };
