@@ -51,7 +51,7 @@ var _getPrices = async (function(params) {
 		.sort((a, b) => a - b)
 		.value();
 
-	if (priceList.length == 0) {
+	if (priceList.length < 2) {
 		return {prices: {lower: 0.00, median: 0.00, upper: 0.00}};
 	} else {
 		var lIndex = Math.floor(priceList.length * 0.3) - 1;
