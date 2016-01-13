@@ -29,6 +29,7 @@
     "es6-promisify": "~3.0.0",
     "expect": "^1.12.2",
     "fs-sync": "^1.0.1",
+    "jackrabbit": "^4.0.3",
     "lodash": "^3.10.1",
     "node-celery": "^0.2.3",
     "prettyjson": "^1.1.3",

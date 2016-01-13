@@ -4,9 +4,8 @@ var config = require('./config/config');
 var log = require('./utilities/logger');
 var request = require('co-request');
 var _ = require('lodash');
-var cheerio = require('cheerio');
 var redis = require('./redis/connection');
-var zerorpc = require('zerorpc');
+var jackrabbit = require('jackrabbit');
 var scrape = require('./scrape');
 var getPrices = require('./getPrices').getPrices;
 var getFeatures = require('./getFeatures').getFeatures;
@@ -36,19 +35,33 @@ var handleMessage = async (function (message) {
 
 	} catch (err) {
 		var response = {success: false, result: String(err.stack)};
-		log.info({jobStatus: 'FAILED', response: response});
+		log.error({jobStatus: 'FAILED', response: response});
 		return response;
 	}
 });
 
 
 
+async (function () {
+	await (redis.init());
+	var rabbit = jackrabbit('amqp://guest:guest@127.0.0.1:5672/')
+		.on('connected', function () {
+			log.info('RabbitMQ connected');
+		})
+		.on('error', function (err) {
+			log.error('RabbitMQ ' + err);
+		})
+		.on('disconnected', function () {
+			log.error('RabbitMQ disconnected');
+		});
 
-var server = new zerorpc.Server({
-	job: async (function(message, reply) {
+	var exchange = rabbit.default();
+	var rpc = exchange.queue({name: 'rpcQueue', prefetch: 1, durable: false});
+
+	rpc.consume(async (function (message, reply) {
 		var response = await (handleMessage(message));
-		reply(null, JSON.stringify(response));
-	})
-});
-server.connect('tcp://127.0.0.1:4244');
+		reply(response);
+	}));
+
+})();
 

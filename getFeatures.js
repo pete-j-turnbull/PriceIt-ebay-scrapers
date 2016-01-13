@@ -117,13 +117,13 @@ module.exports.getFeatures = async (function (params) {
 
 	var cacheKey = sha1('features.' + _.trim(params.searchTerm.toLowerCase()));
 
-	var features = await (redis.get(cacheKey));
+	var features = await (redis.getConn(0).get(cacheKey));
 	if (features != null) {
 		// Cached result
 		return JSON.parse(features);
 	} else {
 		var features = await (_getFeatures(params));
-		await (redis.setex(cacheKey, 3600*24*7, JSON.stringify(features)));
+		await (redis.getConn(0).setex(cacheKey, 3600*24*7, JSON.stringify(features)));
 		return features;
 	}
 	return await (_getFeatures(params))

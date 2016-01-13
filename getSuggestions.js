@@ -30,12 +30,12 @@ var _getSuggestions = async (function (params) {
 module.exports.getSuggestions = async (function(params) {
 	var cacheKey = sha1('suggestions.' + _.trim(params.searchTerm.toLowerCase()));
 
-	var suggestions = await (redis.get(cacheKey));
+	var suggestions = await (redis.getConn(0).get(cacheKey));
 	if (suggestions != null) {
 		return JSON.parse(suggestions);
 	} else {
 		var suggestions = await (_getSuggestions(params));
-		await (redis.setex(cacheKey, 3600*24, JSON.stringify(suggestions)));
+		await (redis.getConn(0).setex(cacheKey, 3600*24, JSON.stringify(suggestions)));
 		return suggestions;
 	}
 });
