@@ -100,12 +100,20 @@ var _getFeatures = async (function (params) {
 		.value();
 
 	featuresObj = {};
-	features.slice(0, 10).forEach(function(feature) {
+	features.slice(0, 7).forEach(function(feature) {
 		var key = feature.name;
 		var opts = feature.options;
 		featuresObj[key] = {options: opts};
 	});
-	log.debug(featuresObj);
+	// Add if Condition is in features but not the features Obj, add it
+	if (Object.keys(featuresObj).indexOf('Condition') == -1) {
+		features.forEach(function (feature) {
+			if (feature.name == 'Condition') {
+				featuresObj[feature.name] = feature.options;
+			}
+		});
+	}
+	log.debug(JSON.stringify(featuresObj));
 	return {features: featuresObj};
 });
 
@@ -117,13 +125,13 @@ module.exports.getFeatures = async (function (params) {
 
 	var cacheKey = sha1('features.' + _.trim(params.searchTerm.toLowerCase()));
 
-	var features = await (redis.getConn(0).get(cacheKey));
+	var features = await (redis.getConn(9).get(cacheKey));
 	if (features != null) {
 		// Cached result
 		return JSON.parse(features);
 	} else {
 		var features = await (_getFeatures(params));
-		await (redis.getConn(0).setex(cacheKey, 3600*24*7, JSON.stringify(features)));
+		await (redis.getConn(9).setex(cacheKey, 3600*24*7, JSON.stringify(features)));
 		return features;
 	}
 	return await (_getFeatures(params))
