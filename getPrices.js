@@ -67,12 +67,12 @@ var _getPrices = async (function(params) {
 
 module.exports.getPrices = async (function(params) {
 	var cacheKey = sha1('prices.' + _.trim(params.searchTerm.toLowerCase()) + JSON.stringify(params.features));
-	var prices = await (redis.getConn(9).get(cacheKey));
+	var prices = await (redis.getConn(0).get(cacheKey));
 	if (prices != null) {
 		return JSON.parse(prices);
 	} else {
 		var prices = await (_getPrices(params));
-		await (redis.getConn(9).setex(cacheKey, 3600*24, JSON.stringify(prices)));
+		await (redis.getConn(0).setex(cacheKey, 3600*24, JSON.stringify(prices)));
 		return prices;
 	}
 });
